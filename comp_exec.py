@@ -10,6 +10,7 @@ class Game():
         self.fA = fA  # First program's "getAction" function
         self.fB = fB  # Second program's " "
         self.user = user  # Boolean indicating whether or not to get user input
+        self.reward = 0
 
     def runComp(self):
         self.reset()
@@ -25,7 +26,6 @@ class Game():
         pygame.quit()
 
     def step(self):
-        self.reward = 0
 
         # PYGAME
         for event in pygame.event.get():  # User did something
@@ -46,7 +46,7 @@ class Game():
         info = [rgbarray, self.paddleA.rect, self.paddleB.rect, self.ball.rect, self.reward, self.done]
 
         # Sending info to first function to get action
-        actionA = self.fA(*info)
+        actionA = self.fA.getAction(*info)
         self.paddleA.moveUp(actionA)
 
         # If indicated that user is providing input
@@ -58,9 +58,11 @@ class Game():
                 self.paddleB.moveDown(10)
         # If two programs playing against each other
         else:
-            actionB = self.fB(info)
+            actionB = self.fB.getAction(*info)
             self.paddleB.moveUp(actionB)
             # print(actionB)
+
+        self.reward = 0
 
         # PYGAME
         if self.paddleB.rect.y > 600 or self.paddleB.rect.y < 100:
@@ -75,13 +77,13 @@ class Game():
             self.ball.velocity[1] = -self.ball.velocity[1]
         if self.ball.rect.x >= 490:
             self.scoreA += 1
-            self.reward = -1
+            self.reward = 1
             self.ball.rect.x = 250
             self.ball.rect.y = 300
             self.ball.velocity = [2 if randint(0, 1) == 0 else -2, 2 if randint(0, 1) == 0 else -2]
-        if self.ball.rect.x <= 0:
+        elif self.ball.rect.x <= 0:
             self.scoreB += 1
-            self.reward = 1
+            self.reward = -1
             self.ball.rect.x = 250
             self.ball.rect.y = 300
             self.ball.velocity = [2 if randint(0, 1) == 0 else -2, 2 if randint(0, 1) == 0 else -2]
@@ -132,3 +134,7 @@ class Game():
 
         rgbarray = pygame.surfarray.array3d(pygame.display.get_surface())
         info = [rgbarray, self.paddleA.rect, self.paddleB.rect, self.ball.rect, 0, self.done]
+
+# player_one = ai.AI("weights_one.txt", "weights_two.txt")
+# game = Game(player_one, None, True)
+# game.runComp()
