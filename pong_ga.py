@@ -13,6 +13,8 @@ class PongPlayer:
         self.weights_one = weights_one
         self.weights_two = weights_two
         self.score = 0
+        self.average = .5
+        self.ave_count = 1
 
     def getAction(self, rgb, paddleA, paddleB, ball, reward, done):
         input_layer = self.screen_process(rgb)
@@ -21,11 +23,13 @@ class PongPlayer:
         hidden = relu(hidden_unactivated)
 
         output_unactivated = np.dot(self.weights_two, hidden)
-        output = sigmoid(output_unactivated)
+        output = relu(output_unactivated)
 
         self.score += reward
+        self.average = ((self.average * self.ave_count) + output) / (self.ave_count + 1)
+        self.ave_count += 1
 
-        if output <= .5:
+        if output <= self.average:
             return 5
         else:
             return -5
@@ -37,16 +41,13 @@ class PongPlayer:
         np_array[np_array != 1] = 0
         return np_array
 
-    def mutate_weights(self):  # NOTE: Possibly consider using map() instead, would be WAY simpler and possibly faster
-        percent = 0.05  # Percent of weights to mutate. NOTE: Possibly decrease (.01 or .001)
+    def mutate_weights(self):
+        percent = 0.01  # Percent of weights to mutate. NOTE: Possibly decrease (.01 or .001)
         temp_w1 = self.weights_one.flatten()
         temp_w2 = self.weights_two.flatten()
 
         rand_ind1 = np.random.choice(temp_w1.size, size=int(temp_w1.size * percent))
         rand_ind2 = np.random.choice(temp_w2.size, size=int(temp_w2.size * percent))
-
-        # temp_w1[rand_ind1] = np.random.randn(rand_ind1.size)
-        # temp_w2[rand_ind2] = np.random.randn(rand_ind2.size)
 
         temp_w1[rand_ind1] += np.random.normal(0, 0.1, rand_ind1.size)
         temp_w2[rand_ind2] += np.random.normal(0, 0.1, rand_ind2.size)
@@ -55,7 +56,8 @@ class PongPlayer:
         self.weights_two = temp_w2.reshape((1, hidden_layer_size))
 
     def copy(self):
-        return PongPlayer(self.weights_one.copy(), self.weights_two.copy())  # .copy() here is important
+        temp = PongPlayer(self.weights_one.copy(), self.weights_two.copy())  # .copy() here is important
+        return temp
 
 @np.vectorize
 def sigmoid(x):
@@ -63,10 +65,9 @@ def sigmoid(x):
 
 
 def relu(vector):
-    vector[vector < 0] = 0
-    return vector
+    return np.maximum(vector, 0)
 
-number_players = 1
+number_players = 5
 tester = training_ai.Tester()
 
 def runGA(weights_one, weights_two):
@@ -75,17 +76,15 @@ def runGA(weights_one, weights_two):
 
     for p in range(number_players):
         pong_players[p] = PongPlayer(weights_one, weights_two)
-    print("Initialized first generation of players.")
 
     for g in range(number_generations):
-        print("\nRunning new generation " + str(g + 1) + "\n")
         pong_players = runGeneration(pong_players)
 
     best_player = pong_players[0]
-    for p in pong_players:
+    '''for p in pong_players:
         if best_player.score < p.score:
             best_player = p
-    print("Best score of last generation: " + str(best_player.score))
+    print("Best score of last generation: " + str(best_player.score))'''
     time.sleep(2)
 
     return best_player
@@ -117,10 +116,12 @@ def runGeneration(players):
         new_players.append(temp)
     return new_players
 
-w1 = np.loadtxt("weights_one.txt", delimiter=',')
-w2 = np.loadtxt("weights_two.txt", delimiter=',')
-
-final_player = runGA(w1, w2)
-
-np.savetxt("weights_one.txt", final_player.weights_one, delimiter=',')
-np.savetxt("weights_two.txt", final_player.weights_two, delimiter=',')
+for i in range(5):
+    print("\nrunning generation", i+1, "\n")
+    w1 = np.loadtxt("weights_one.txt", delimiter=',')
+    # w1 = np.random.randint(-10,10,size=(hidden_layer_size,input_layer_size))
+    w2 = np.loadtxt("weights_two.txt", delimiter=',')
+    # w2 = np.random.randint(-10,10,size=(1,hidden_layer_size))
+    final_player = runGA(w1, w2)
+    np.savetxt("weights_one.txt", final_player.weights_one, delimiter=',')
+    np.savetxt("weights_two.txt", final_player.weights_two, delimiter=',')

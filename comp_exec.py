@@ -35,8 +35,8 @@ class Game():
                 if event.key == pygame.K_x:  # Pressing the x Key will quit the game
                     self.done = True
 
-        if self.scoreA == 21 or self.scoreB == 21:
-            self.winner = "Player A" if self.scoreA == 21 else "Player B"
+        if self.scoreA == 10 or self.scoreB == 10:
+            self.winner = "Player A" if self.scoreA == 10 else "Player B"
             self.done = True
 
         # Getting screen pixels
@@ -83,7 +83,7 @@ class Game():
             self.ball.velocity = [2 if randint(0, 1) == 0 else -2, 2 if randint(0, 1) == 0 else -2]
         elif self.ball.rect.x <= 0:
             self.scoreB += 1
-            self.reward = -1
+            self.reward = 0
             self.ball.rect.x = 250
             self.ball.rect.y = 300
             self.ball.velocity = [2 if randint(0, 1) == 0 else -2, 2 if randint(0, 1) == 0 else -2]
@@ -135,6 +135,6 @@ class Game():
         rgbarray = pygame.surfarray.array3d(pygame.display.get_surface())
         info = [rgbarray, self.paddleA.rect, self.paddleB.rect, self.ball.rect, 0, self.done]
 
-# player_one = ai.AI("weights_one.txt", "weights_two.txt")
-# game = Game(player_one, None, True)
-# game.runComp()
+player_one = ai.AI("weights_one.txt", "weights_two.txt")
+game = Game(player_one, None, True)
+game.runComp()
