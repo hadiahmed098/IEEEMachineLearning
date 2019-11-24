@@ -7,8 +7,8 @@ import ai
 
 class Game():
     def __init__(self, fA, fB, user):
-        self.fA = fA  # First program's "getAction" function
-        self.fB = fB  # Second program's " "
+        self.fA = fA  # First program
+        self.fB = fB  # Second program
         self.user = user  # Boolean indicating whether or not to get user input
         self.reward = 0
 
@@ -77,19 +77,23 @@ class Game():
             self.ball.velocity[1] = -self.ball.velocity[1]
         if self.ball.rect.x >= 490:
             self.scoreA += 1
-            self.reward = 1
+            self.reward += 2
             self.ball.rect.x = 250
             self.ball.rect.y = 300
             self.ball.velocity = [2 if randint(0, 1) == 0 else -2, 2 if randint(0, 1) == 0 else -2]
         elif self.ball.rect.x <= 0:
             self.scoreB += 1
-            self.reward = 0
             self.ball.rect.x = 250
             self.ball.rect.y = 300
             self.ball.velocity = [2 if randint(0, 1) == 0 else -2, 2 if randint(0, 1) == 0 else -2]
         # Detect collisions between the ball and the paddles
-        if pygame.sprite.collide_mask(self.ball, self.paddleA) or pygame.sprite.collide_mask(self.ball, self.paddleB):
+        if pygame.sprite.collide_mask(self.ball, self.paddleA):
             self.ball.bounce()
+            self.reward += 1
+        elif pygame.sprite.collide_mask(self.ball, self.paddleB):
+            self.ball.bounce()
+
+
         # --- Drawing code should go here
         # First, clear the screen to BLACK.
         self.screen.fill(self.BLACK)
@@ -135,6 +139,6 @@ class Game():
         rgbarray = pygame.surfarray.array3d(pygame.display.get_surface())
         info = [rgbarray, self.paddleA.rect, self.paddleB.rect, self.ball.rect, 0, self.done]
 
-player_one = ai.AI("weights_one.txt", "weights_two.txt")
-game = Game(player_one, None, True)
-game.runComp()
+# player_one = ai.AI("weights_one.txt", "weights_two.txt")
+# game = Game(player_one, None, True)
+# game.runComp()
